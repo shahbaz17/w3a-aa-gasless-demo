@@ -275,7 +275,7 @@ export default class EthereumRpc {
         functionName: "transfer",
         args: [
           "0xeaA8Af602b2eDE45922818AE5f9f7FdE50cFa1A8",
-          parseUnits("1", 6),
+          parseUnits("4", 6),
         ],
       }),
     });
