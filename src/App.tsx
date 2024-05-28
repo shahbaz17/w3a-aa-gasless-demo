@@ -517,7 +517,7 @@ function App() {
         >
           Web3Auth{" "}
         </a>
-        & ReactJS Ethereum Example
+        & AA Gassless Example
       </h1>
 
       <div className="grid">{loggedIn ? loggedInView : unloggedInView}</div>
