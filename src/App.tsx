@@ -517,7 +517,7 @@ function App() {
         >
           Web3Auth{" "}
         </a>
-        & AA Gassless Example
+        AA Gassless Example
       </h1>
 
       <div className="grid">{loggedIn ? loggedInView : unloggedInView}</div>
