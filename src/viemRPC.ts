@@ -1,8 +1,23 @@
-import { createWalletClient, createPublicClient, custom, formatEther, parseEther, http, parseAbiItem } from "viem";
+import {
+  createWalletClient,
+  createPublicClient,
+  custom,
+  formatEther,
+  parseEther,
+  http,
+  parseAbiItem,
+} from "viem";
 import { mainnet, polygonMumbai, sepolia } from "viem/chains";
-import { ENTRYPOINT_ADDRESS_V07, createSmartAccountClient, providerToSmartAccountSigner } from "permissionless";
+import {
+  ENTRYPOINT_ADDRESS_V07,
+  createSmartAccountClient,
+  providerToSmartAccountSigner,
+} from "permissionless";
 import { signerToSafeSmartAccount } from "permissionless/accounts";
-import { createPimlicoBundlerClient, createPimlicoPaymasterClient } from "permissionless/clients/pimlico";
+import {
+  createPimlicoBundlerClient,
+  createPimlicoPaymasterClient,
+} from "permissionless/clients/pimlico";
 import type { EIP1193Provider } from "viem";
 import type { IProvider } from "@web3auth/base";
 
@@ -39,7 +54,9 @@ export default class EthereumRpc {
       transport: http("https://rpc.ankr.com/eth_sepolia"),
       chain: sepolia,
     });
-    const smartAccountSigner = await providerToSmartAccountSigner(this.provider as EIP1193Provider);
+    const smartAccountSigner = await providerToSmartAccountSigner(
+      this.provider as EIP1193Provider
+    );
     const smartAccount = await signerToSafeSmartAccount(publicClient, {
       signer: smartAccountSigner,
       entryPoint: ENTRYPOINT_ADDRESS_V07,
@@ -72,12 +89,14 @@ export default class EthereumRpc {
       throw new Error("Smart account client not initialized");
     }
     const txHash = await smartAccountClient.sendTransaction({
-      to: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-      value: 0n,
+      to: "0xeaA8Af602b2eDE45922818AE5f9f7FdE50cFa1A8",
+      value: parseEther("0.08"),
       data: "0x1234",
     });
 
-    console.log(`User operation included: https://sepolia.etherscan.io/tx/${txHash}`);
+    console.log(
+      `User operation included: https://sepolia.etherscan.io/tx/${txHash}`
+    );
     return `User operation included: https://sepolia.etherscan.io/tx/${txHash}`;
   }
 
@@ -86,7 +105,9 @@ export default class EthereumRpc {
       transport: http("https://rpc.ankr.com/eth_sepolia"),
       chain: sepolia,
     });
-    const smartAccountSigner = await providerToSmartAccountSigner(this.provider as EIP1193Provider);
+    const smartAccountSigner = await providerToSmartAccountSigner(
+      this.provider as EIP1193Provider
+    );
     const smartAccount = await signerToSafeSmartAccount(publicClient, {
       signer: smartAccountSigner,
       entryPoint: ENTRYPOINT_ADDRESS_V07,
@@ -100,7 +121,9 @@ export default class EthereumRpc {
       transport: http("https://rpc.ankr.com/eth_sepolia"),
       chain: sepolia,
     });
-    const smartAccountSigner = await providerToSmartAccountSigner(this.provider as EIP1193Provider);
+    const smartAccountSigner = await providerToSmartAccountSigner(
+      this.provider as EIP1193Provider
+    );
     const smartAccount = await signerToSafeSmartAccount(publicClient, {
       signer: smartAccountSigner,
       entryPoint: ENTRYPOINT_ADDRESS_V07,
@@ -108,25 +131,31 @@ export default class EthereumRpc {
     });
 
     const senderUsdcBalance = await publicClient.readContract({
-      abi: [parseAbiItem("function balanceOf(address account) returns (uint256)")],
+      abi: [
+        parseAbiItem("function balanceOf(address account) returns (uint256)"),
+      ],
       address: USDC_ADDRESS,
       functionName: "balanceOf",
       args: [smartAccount.address],
     });
 
     if (senderUsdcBalance < 1_000_000n) {
-      throw new Error(
-        `Insufficient USDC balance for counterfactual wallet address ${smartAccount.address}: ${
+      console.log(`Smart account USDC balance: 0 USDC`);
+    } else {
+      console.log(
+        `Smart account USDC balance: ${
           Number(senderUsdcBalance) / 1000000
-        } USDC, required at least 1 USDC. Load up balance at https://faucet.circle.com/`
+        } USDC`
       );
     }
 
-    console.log(`Smart account USDC balance: ${Number(senderUsdcBalance) / 1000000} USDC`);
-
-    const balance = await publicClient.getBalance({ address: smartAccount.address as any });
+    const balance = await publicClient.getBalance({
+      address: smartAccount.address as any,
+    });
     const ethBalance = formatEther(balance);
-    return `Smart account USDC balance: ${Number(senderUsdcBalance) / 1000000} USDC and ETH balance: ${ethBalance}`;
+    return `Smart account USDC balance: ${
+      Number(senderUsdcBalance) / 1000000
+    } USDC and ETH balance: ${ethBalance}`;
   }
 
   async getChainId(): Promise<string | Error> {
@@ -176,7 +205,9 @@ export default class EthereumRpc {
       });
       const addresses = await this.getAccounts();
       if (Array.isArray(addresses)) {
-        const balance = await publicClient.getBalance({ address: addresses[0] as any });
+        const balance = await publicClient.getBalance({
+          address: addresses[0] as any,
+        });
         return formatEther(balance);
       } else {
         return "Unable to retrieve address";
@@ -241,6 +272,10 @@ export default class EthereumRpc {
   }
 
   private toObject(data: any): any {
-    return JSON.parse(JSON.stringify(data, (key, value) => (typeof value === "bigint" ? value.toString() : value)));
+    return JSON.parse(
+      JSON.stringify(data, (key, value) =>
+        typeof value === "bigint" ? value.toString() : value
+      )
+    );
   }
 }
