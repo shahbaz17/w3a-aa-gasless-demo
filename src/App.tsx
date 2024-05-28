@@ -23,7 +23,8 @@ import { getDefaultExternalAdapters } from "@web3auth/default-evm-adapter";
 
 import Loading from "./Loading";
 
-const clientId = "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ"; // get from https://dashboard.web3auth.io
+const clientId =
+  "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ"; // get from https://dashboard.web3auth.io
 
 const chainConfig = {
   chainId: "0xaa36a7", // Please use 0x1 for ETH Mainnet, 0x89 for Polygon Mainnet
@@ -36,7 +37,9 @@ const chainConfig = {
   logo: "https://cryptologos.cc/logos/polygon-matic-logo.png",
 };
 
-const privateKeyProvider = new EthereumPrivateKeyProvider({ config: { chainConfig } });
+const privateKeyProvider = new EthereumPrivateKeyProvider({
+  config: { chainConfig },
+});
 
 const web3AuthOptions: Web3AuthOptions = {
   clientId,
@@ -48,7 +51,8 @@ const web3AuthOptions: Web3AuthOptions = {
 
 function App() {
   const [web3auth, setWeb3auth] = useState<Web3Auth | null>(null);
-  const [walletServicesPlugin, setWalletServicesPlugin] = useState<WalletServicesPlugin | null>(null);
+  const [walletServicesPlugin, setWalletServicesPlugin] =
+    useState<WalletServicesPlugin | null>(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [loader, setLoader] = useState(false);
 
@@ -104,7 +108,9 @@ function App() {
         // read more about adapters here: https://web3auth.io/docs/sdk/pnp/web/adapters/
 
         // Only when you want to add External default adapters, which includes WalletConnect, Metamask, Torus EVM Wallet
-        const adapters = await getDefaultExternalAdapters({ options: web3AuthOptions });
+        const adapters = await getDefaultExternalAdapters({
+          options: web3AuthOptions,
+        });
         adapters.forEach((adapter) => {
           web3auth.configureAdapter(adapter);
         });
@@ -459,17 +465,26 @@ function App() {
         </div>
 
         <div>
-          <button onClick={getSmartAccountAddress} className="card smart-account">
+          <button
+            onClick={getSmartAccountAddress}
+            className="card smart-account"
+          >
             Get Smart Account Address
           </button>
         </div>
         <div>
-          <button onClick={getSmartAccountBalance} className="card smart-account">
+          <button
+            onClick={getSmartAccountBalance}
+            className="card smart-account"
+          >
             Get Smart Account Balance
           </button>
         </div>
         <div>
-          <button onClick={sendSmartAccountTransaction} className="card smart-account">
+          <button
+            onClick={sendSmartAccountTransaction}
+            className="card smart-account"
+          >
             Send Smart Account Transaction
           </button>
         </div>
@@ -495,7 +510,11 @@ function App() {
   return (
     <div className="container">
       <h1 className="title">
-        <a target="_blank" href="https://web3auth.io/docs/sdk/pnp/web/modal" rel="noreferrer">
+        <a
+          target="_blank"
+          href="https://web3auth.io/docs/sdk/pnp/web/modal"
+          rel="noreferrer"
+        >
           Web3Auth{" "}
         </a>
         & ReactJS Ethereum Example
@@ -505,16 +524,24 @@ function App() {
 
       <footer className="footer">
         <a
-          href="https://github.com/Web3Auth/web3auth-pnp-examples/tree/main/web-modal-sdk/blockchain-connection-examples/evm-modal-example"
+          href="https://github.com/shahbaz17/w3a-aa-gasless-demo"
           target="_blank"
           rel="noopener noreferrer"
         >
           Source code
         </a>
-        <a href="https://faucet.circle.com/" target="_blank" rel="noopener noreferrer">
+        <a
+          href="https://faucet.circle.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           USDC Faucet
         </a>
-        <a href="https://www.alchemy.com/faucets/ethereum-sepolia" target="_blank" rel="noopener noreferrer">
+        <a
+          href="https://www.alchemy.com/faucets/ethereum-sepolia"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Eth Sepolia Faucet
         </a>
         <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FWeb3Auth%2Fweb3auth-pnp-examples%2Ftree%2Fmain%2Fweb-modal-sdk%2Fblockchain-connection-examples%2Fevm-modal-example&project-name=w3a-evm-modal&repository-name=w3a-evm-modal">
