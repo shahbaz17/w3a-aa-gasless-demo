@@ -6,6 +6,8 @@ import {
   parseEther,
   http,
   parseAbiItem,
+  encodeFunctionData,
+  parseUnits,
 } from "viem";
 import { mainnet, polygonMumbai, sepolia } from "viem/chains";
 import {
@@ -27,6 +29,166 @@ const USDC_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 const API_KEY = "bff8c9e7-b1ad-4489-ab73-a61e30343138";
 const PAYMASTER_URL = `https://api.pimlico.io/v2/sepolia/rpc?apikey=${API_KEY}`;
 const BUNDLER_URL = `https://api.pimlico.io/v2/sepolia/rpc?apikey=${API_KEY}`;
+
+const USDC_ABI = [
+  {
+    constant: true,
+    inputs: [],
+    name: "name",
+    outputs: [{ name: "", type: "string" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: "_spender", type: "address" },
+      { name: "_value", type: "uint256" },
+    ],
+    name: "approve",
+    outputs: [{ name: "success", type: "bool" }],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "totalSupply",
+    outputs: [{ name: "", type: "uint256" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: "_from", type: "address" },
+      { name: "_to", type: "address" },
+      { name: "_value", type: "uint256" },
+    ],
+    name: "transferFrom",
+    outputs: [{ name: "success", type: "bool" }],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "decimals",
+    outputs: [{ name: "", type: "uint8" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [{ name: "_value", type: "uint256" }],
+    name: "burn",
+    outputs: [{ name: "success", type: "bool" }],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [{ name: "", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ name: "", type: "uint256" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: "_from", type: "address" },
+      { name: "_value", type: "uint256" },
+    ],
+    name: "burnFrom",
+    outputs: [{ name: "success", type: "bool" }],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "symbol",
+    outputs: [{ name: "", type: "string" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: "_to", type: "address" },
+      { name: "_value", type: "uint256" },
+    ],
+    name: "transfer",
+    outputs: [],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: "_spender", type: "address" },
+      { name: "_value", type: "uint256" },
+      { name: "_extraData", type: "bytes" },
+    ],
+    name: "approveAndCall",
+    outputs: [{ name: "success", type: "bool" }],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [
+      { name: "", type: "address" },
+      { name: "", type: "address" },
+    ],
+    name: "allowance",
+    outputs: [{ name: "", type: "uint256" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "initialSupply", type: "uint256" },
+      { name: "tokenName", type: "string" },
+      { name: "tokenSymbol", type: "string" },
+    ],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: "from", type: "address" },
+      { indexed: true, name: "to", type: "address" },
+      { indexed: false, name: "value", type: "uint256" },
+    ],
+    name: "Transfer",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: "from", type: "address" },
+      { indexed: false, name: "value", type: "uint256" },
+    ],
+    name: "Burn",
+    type: "event",
+  },
+];
 
 export default class EthereumRpc {
   private provider: IProvider;
@@ -88,11 +250,41 @@ export default class EthereumRpc {
     if (!smartAccountClient) {
       throw new Error("Smart account client not initialized");
     }
-    const txHash = await smartAccountClient.sendTransaction({
-      to: "0xeaA8Af602b2eDE45922818AE5f9f7FdE50cFa1A8",
-      value: parseEther("0.08"),
-      data: "0x1234",
+
+    const senderUsdcBalance = await publicClient.readContract({
+      abi: [
+        parseAbiItem("function balanceOf(address account) returns (uint256)"),
+      ],
+      address: USDC_ADDRESS,
+      functionName: "balanceOf",
+      args: [smartAccount.address],
     });
+
+    if (senderUsdcBalance < 1_000_000n) {
+      console.log(
+        `Smart account has 0 USDC balance, please fund it using the faucet link below.`
+      );
+      return `Smart account has 0 USDC balance, please fund it using the faucet link below.`;
+    }
+
+    // Send 1 USDC
+    const txHash = await smartAccountClient.sendTransaction({
+      to: USDC_ADDRESS,
+      data: encodeFunctionData({
+        abi: USDC_ABI,
+        functionName: "transfer",
+        args: [
+          "0xeaA8Af602b2eDE45922818AE5f9f7FdE50cFa1A8",
+          parseUnits("1", 6),
+        ],
+      }),
+    });
+
+    // const txHash = await smartAccountClient.sendTransaction({
+    //   to: "0xeaA8Af602b2eDE45922818AE5f9f7FdE50cFa1A8",
+    //   value: parseEther("0.08"),
+    //   data: "0x1234",
+    // });
 
     console.log(
       `User operation included: https://sepolia.etherscan.io/tx/${txHash}`
