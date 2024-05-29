@@ -55,6 +55,11 @@ function App() {
     useState<WalletServicesPlugin | null>(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [loader, setLoader] = useState(false);
+  const [toAddress, setToAddress] = useState("");
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setToAddress(event.target.value);
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -187,6 +192,17 @@ function App() {
     }
     await web3auth.connect();
   };
+
+  function isValidETHAddress(str: string | null): boolean {
+    const regex = /^(0x)?[0-9a-fA-F]{40}$/;
+
+    if (str === null) {
+      return false;
+    }
+
+    return regex.test(str);
+  }
+
 
   const authenticateUser = async () => {
     if (!web3auth) {
@@ -344,8 +360,16 @@ function App() {
     uiConsole();
     setLoader(true);
     const rpc = new RPC(web3auth.provider as IProvider);
-    const receipt = await rpc.sendSmartAccountTransaction();
-    uiConsole(receipt);
+    if (isValidETHAddress(toAddress)) {
+      try {
+        const receipt = await rpc.sendSmartAccountTransaction(toAddress);
+        uiConsole(receipt);
+      } catch (e) {
+        uiConsole(e);
+      }
+    } else {
+      uiConsole("Please enter valid Ethereum address");
+    }
     setLoader(false);
   };
 
@@ -494,6 +518,13 @@ function App() {
           </button>
         </div>
       </div>
+      <input
+        type="text"
+        value={toAddress}
+        onChange={handleChange}
+        id="textfield"
+        placeholder="Enter address to send Smart Account Transaction"
+      />
       {loader && <Loading />}
       <div id="console" style={{ whiteSpace: "pre-line" }}>
         <p style={{ whiteSpace: "pre-line" }}></p>

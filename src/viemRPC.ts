@@ -211,7 +211,7 @@ export default class EthereumRpc {
     }
   }
 
-  async sendSmartAccountTransaction() {
+  async sendSmartAccountTransaction(address: String) {
     const publicClient = createPublicClient({
       transport: http("https://rpc.ankr.com/eth_sepolia"),
       chain: sepolia,
@@ -274,7 +274,7 @@ export default class EthereumRpc {
         abi: USDC_ABI,
         functionName: "transfer",
         args: [
-          "0xeaA8Af602b2eDE45922818AE5f9f7FdE50cFa1A8",
+          address,
           parseUnits("1", 6),
         ],
       }),
