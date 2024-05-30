@@ -27,14 +27,16 @@ const clientId =
   "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ"; // get from https://dashboard.web3auth.io
 
 const chainConfig = {
-  chainId: "0xaa36a7", // Please use 0x1 for ETH Mainnet, 0x89 for Polygon Mainnet
-  rpcTarget: "https://rpc.ankr.com/eth_sepolia",
   chainNamespace: CHAIN_NAMESPACES.EIP155,
-  displayName: "Ethereum Sepolia Testnet",
-  blockExplorerUrl: "https://sepolia.etherscan.io",
+  chainId: "0x14a34",
+  rpcTarget: "https://sepolia.base.org",
+  // Avoid using public rpcTarget in production.
+  // Use services like Infura, Quicknode etc
+  displayName: "Base Sepolia",
+  blockExplorerUrl: "https://sepolia.basescan.org/",
   ticker: "ETH",
   tickerName: "Ethereum",
-  logo: "https://cryptologos.cc/logos/polygon-matic-logo.png",
+  logo: "https://images.toruswallet.io/base.svg",
 };
 
 const privateKeyProvider = new EthereumPrivateKeyProvider({
