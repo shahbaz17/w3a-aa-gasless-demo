@@ -205,7 +205,6 @@ function App() {
     return regex.test(str);
   }
 
-
   const authenticateUser = async () => {
     if (!web3auth) {
       uiConsole("web3auth not initialized yet");
@@ -511,7 +510,8 @@ function App() {
         </div>
       </div>
       <h5>
-        Please note that the initial transaction for smart account creation can take more than 7 USDC.
+        Please note that the initial transaction for smart account creation can
+        take more than 7 USDC.{" "}
         <a
           href="https://sepolia.basescan.org/tx/0x9c1ad9f3e70fcafdadd0c2d43bd6ab4937f503e28f40b3314395ba185ff8848b"
           target="_blank"
@@ -552,7 +552,17 @@ function App() {
         </a>
         AA Gassless Example
       </h1>
-
+      <p className="center">
+        This Demo is on{" "}
+        <a
+          href="https://sepolia.basescan.org/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Base Sepolia
+        </a>{" "}
+        Chain
+      </p>
       <div className="grid">{loggedIn ? loggedInView : unloggedInView}</div>
 
       <footer className="footer">
