@@ -273,38 +273,38 @@ function App() {
     uiConsole(chainId);
   };
 
-  const addChain = async () => {
-    if (!web3auth?.provider) {
-      uiConsole("provider not initialized yet");
-      return;
-    }
-    uiConsole();
-    const newChain = {
-      chainNamespace: CHAIN_NAMESPACES.EIP155,
-      chainId: "0x89", // hex of 137, polygon mainnet
-      rpcTarget: "https://rpc.ankr.com/polygon",
-      // Avoid using public rpcTarget in production.
-      // Use services like Infura, Quicknode etc
-      displayName: "Polygon Mainnet",
-      blockExplorerUrl: "https://polygonscan.com",
-      ticker: "MATIC",
-      tickerName: "MATIC",
-      logo: "https://images.toruswallet.io/polygon.svg",
-    };
+  // const addChain = async () => {
+  //   if (!web3auth?.provider) {
+  //     uiConsole("provider not initialized yet");
+  //     return;
+  //   }
+  //   uiConsole();
+  //   const newChain = {
+  //     chainNamespace: CHAIN_NAMESPACES.EIP155,
+  //     chainId: "0x89", // hex of 137, polygon mainnet
+  //     rpcTarget: "https://rpc.ankr.com/polygon",
+  //     // Avoid using public rpcTarget in production.
+  //     // Use services like Infura, Quicknode etc
+  //     displayName: "Polygon Mainnet",
+  //     blockExplorerUrl: "https://polygonscan.com",
+  //     ticker: "MATIC",
+  //     tickerName: "MATIC",
+  //     logo: "https://images.toruswallet.io/polygon.svg",
+  //   };
 
-    await web3auth?.addChain(newChain);
-    uiConsole("New Chain Added");
-  };
+  //   await web3auth?.addChain(newChain);
+  //   uiConsole("New Chain Added");
+  // };
 
-  const switchChain = async () => {
-    if (!web3auth?.provider) {
-      uiConsole("provider not initialized yet");
-      return;
-    }
-    uiConsole();
-    await web3auth?.switchChain({ chainId: "0x89" });
-    uiConsole("Chain Switched");
-  };
+  // const switchChain = async () => {
+  //   if (!web3auth?.provider) {
+  //     uiConsole("provider not initialized yet");
+  //     return;
+  //   }
+  //   uiConsole();
+  //   await web3auth?.switchChain({ chainId: "0x89" });
+  //   uiConsole("Chain Switched");
+  // };
 
   const getAccounts = async () => {
     if (!web3auth?.provider) {
@@ -455,16 +455,6 @@ function App() {
           </button>
         </div>
         <div>
-          <button onClick={addChain} className="card">
-            Add Chain
-          </button>
-        </div>
-        <div>
-          <button onClick={switchChain} className="card">
-            Switch Chain
-          </button>
-        </div>
-        <div>
           <button onClick={getAccounts} className="card">
             Get Accounts
           </button>
@@ -520,6 +510,16 @@ function App() {
           </button>
         </div>
       </div>
+      <h5>
+        Please note that the initial transaction for smart account creation can take more than 7 USDC.
+        <a
+          href="https://sepolia.basescan.org/tx/0x9c1ad9f3e70fcafdadd0c2d43bd6ab4937f503e28f40b3314395ba185ff8848b"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Reference transaction
+        </a>
+      </h5>
       <input
         type="text"
         value={toAddress}
