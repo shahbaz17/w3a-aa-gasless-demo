@@ -16,18 +16,15 @@ import {
   providerToSmartAccountSigner,
 } from "permissionless";
 import { signerToSafeSmartAccount } from "permissionless/accounts";
-import {
-  createPimlicoBundlerClient,
-} from "permissionless/clients/pimlico";
+import { createPimlicoBundlerClient } from "permissionless/clients/pimlico";
 import type { EIP1193Provider } from "viem";
 import type { IProvider } from "@web3auth/base";
-import { bundlerActions } from "permissionless/clients/decorators/bundler";
-import { pimlicoBundlerActions, pimlicoPaymasterActions } from "permissionless/actions/pimlico";
+import { pimlicoPaymasterActions } from "permissionless/actions/pimlico";
 
 // const ERC20_PAYMASTER_ADDRESS = "0x000000000041F3aFe8892B48D88b6862efe0ec8d";
 // const SPONSORSHIP_POLICY_ID = "sp_square_the_stranger";
 const USDC_ADDRESS = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
-const ERC20_PAYMASTER_ADDRESS = "0x00000000002E3A39aFEf1132214fEee5a55ce127"
+const ERC20_PAYMASTER_ADDRESS = "0x00000000002E3A39aFEf1132214fEee5a55ce127";
 const API_KEY = "bff8c9e7-b1ad-4489-ab73-a61e30343138";
 // const PAYMASTER_URL = `https://api.pimlico.io/v2/84532/rpc?apikey=${API_KEY}`;
 const BUNDLER_URL = `https://api.pimlico.io/v2/84532/rpc?apikey=${API_KEY}`;
@@ -232,7 +229,9 @@ export default class EthereumRpc {
           to: USDC_ADDRESS,
           value: 0n,
           data: encodeFunctionData({
-            abi: [parseAbiItem("function approve(address spender, uint256 amount)")],
+            abi: [
+              parseAbiItem("function approve(address spender, uint256 amount)"),
+            ],
             args: [
               ERC20_PAYMASTER_ADDRESS,
               0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn,
@@ -254,7 +253,7 @@ export default class EthereumRpc {
       bundlerTransport: http(BUNDLER_URL),
       middleware: {
         gasPrice: async () => {
-          return (await bundlerClient.getUserOperationGasPrice()).fast
+          return (await bundlerClient.getUserOperationGasPrice()).fast;
         },
         sponsorUserOperation: async (args) => {
           const gasEstimates = await bundlerClient.estimateUserOperationGas({
@@ -262,13 +261,13 @@ export default class EthereumRpc {
               ...args.userOperation,
               paymaster: ERC20_PAYMASTER_ADDRESS,
             },
-          })
+          });
 
           return {
             ...gasEstimates,
-            preVerificationGas: gasEstimates.preVerificationGas * 120n / 100n,
+            preVerificationGas: (gasEstimates.preVerificationGas * 120n) / 100n,
             paymaster: ERC20_PAYMASTER_ADDRESS,
-          }
+          };
         },
       },
     });
@@ -277,8 +276,7 @@ export default class EthereumRpc {
   }
 
   async sendSmartAccountTransaction(address: String) {
-
-    const { _, smartAccountClient } = await this.prepareSmartAccountClient();
+    const { smartAccountClient } = await this.prepareSmartAccountClient();
     if (!smartAccountClient) {
       throw new Error("Smart account client not initialized");
     }
@@ -289,10 +287,7 @@ export default class EthereumRpc {
       data: encodeFunctionData({
         abi: USDC_ABI,
         functionName: "transfer",
-        args: [
-          address,
-          parseUnits("1", 6),
-        ],
+        args: [address, parseUnits("1", 6)],
       }),
     });
 
@@ -309,8 +304,7 @@ export default class EthereumRpc {
   }
 
   async getSmartAccountAddress() {
-
-    const { smartAccount, _ } = await this.prepareSmartAccountClient();
+    const { smartAccount } = await this.prepareSmartAccountClient();
     return smartAccount.address;
   }
 
@@ -319,10 +313,14 @@ export default class EthereumRpc {
       transport: http("https://sepolia.base.org"),
       chain: baseSepolia,
     });
-    const { smartAccount, _ } = await this.prepareSmartAccountClient();
+    const { smartAccount } = await this.prepareSmartAccountClient();
 
     const senderUsdcBalance = await publicClient.readContract({
-      abi: [parseAbiItem("function balanceOf(address account) external view returns (uint256)")],
+      abi: [
+        parseAbiItem(
+          "function balanceOf(address account) external view returns (uint256)"
+        ),
+      ],
       address: USDC_ADDRESS,
       functionName: "balanceOf",
       args: [smartAccount.address],
@@ -341,8 +339,9 @@ export default class EthereumRpc {
       address: smartAccount.address as any,
     });
     const ethBalance = formatEther(balance);
-    return `Smart account USDC balance: ${Number(senderUsdcBalance) / 1000000
-      } USDC and ETH balance: ${ethBalance}`;
+    return `Smart account USDC balance: ${
+      Number(senderUsdcBalance) / 1000000
+    } USDC and ETH balance: ${ethBalance}`;
   }
 
   async getChainId(): Promise<string | Error> {
