@@ -550,7 +550,7 @@ function App() {
         >
           Web3Auth{" "}
         </a>
-        AA Gassless Example
+        AA Gasless Example
       </h1>
       <p className="center">
         This Demo is on{" "}
