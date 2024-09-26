@@ -9,17 +9,16 @@ import {
   encodeFunctionData,
   parseUnits,
 } from "viem";
+
+import { createPimlicoClient } from "permissionless/clients/pimlico";
+import { toBiconomySmartAccount } from "permissionless/accounts";
 import { baseSepolia, mainnet, polygonMumbai, sepolia } from "viem/chains";
 import {
-  ENTRYPOINT_ADDRESS_V07,
   createSmartAccountClient,
-  providerToSmartAccountSigner,
 } from "permissionless";
-import { signerToSafeSmartAccount } from "permissionless/accounts";
-import { createPimlicoBundlerClient } from "permissionless/clients/pimlico";
 import type { EIP1193Provider } from "viem";
 import type { IProvider } from "@web3auth/base";
-import { pimlicoPaymasterActions } from "permissionless/actions/pimlico";
+import { entryPoint06Address, entryPoint07Address } from "viem/account-abstraction";
 
 // const ERC20_PAYMASTER_ADDRESS = "0x000000000041F3aFe8892B48D88b6862efe0ec8d";
 // const SPONSORSHIP_POLICY_ID = "sp_square_the_stranger";
@@ -216,60 +215,31 @@ export default class EthereumRpc {
       chain: baseSepolia,
     });
 
-    const smartAccountSigner = await providerToSmartAccountSigner(
-      this.provider as EIP1193Provider
-    );
+    const smartAccountSigner = this.provider as EIP1193Provider
 
-    const smartAccount = await signerToSafeSmartAccount(publicClient, {
-      signer: smartAccountSigner,
-      entryPoint: ENTRYPOINT_ADDRESS_V07,
-      safeVersion: "1.4.1",
-      setupTransactions: [
-        {
-          to: USDC_ADDRESS,
-          value: 0n,
-          data: encodeFunctionData({
-            abi: [
-              parseAbiItem("function approve(address spender, uint256 amount)"),
-            ],
-            args: [
-              ERC20_PAYMASTER_ADDRESS,
-              0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn,
-            ],
-          }),
-        },
-      ],
+    const smartAccount = await toBiconomySmartAccount({
+      client: publicClient,
+      owners: [smartAccountSigner],
+      entryPoint: {
+        address: entryPoint06Address,
+        version: "0.6",
+      }
     });
 
-    const bundlerClient = createPimlicoBundlerClient({
+    const bundlerClient = createPimlicoClient({
       transport: http(BUNDLER_URL),
-      entryPoint: ENTRYPOINT_ADDRESS_V07,
-    }).extend(pimlicoPaymasterActions(ENTRYPOINT_ADDRESS_V07));
+      entryPoint: {
+        address: entryPoint06Address,
+        version: "0.6",
+      },
+    });
+
+    // bundlerClient.extends(pimlicoPaymasterActions(entryPoint06Address));
 
     const smartAccountClient = createSmartAccountClient({
       account: smartAccount,
-      entryPoint: ENTRYPOINT_ADDRESS_V07,
       chain: baseSepolia,
       bundlerTransport: http(BUNDLER_URL),
-      middleware: {
-        gasPrice: async () => {
-          return (await bundlerClient.getUserOperationGasPrice()).fast;
-        },
-        sponsorUserOperation: async (args) => {
-          const gasEstimates = await bundlerClient.estimateUserOperationGas({
-            userOperation: {
-              ...args.userOperation,
-              paymaster: ERC20_PAYMASTER_ADDRESS,
-            },
-          });
-
-          return {
-            ...gasEstimates,
-            preVerificationGas: (gasEstimates.preVerificationGas * 120n) / 100n,
-            paymaster: ERC20_PAYMASTER_ADDRESS,
-          };
-        },
-      },
     });
 
     return { smartAccount, smartAccountClient };
@@ -339,9 +309,8 @@ export default class EthereumRpc {
       address: smartAccount.address as any,
     });
     const ethBalance = formatEther(balance);
-    return `Smart account USDC balance: ${
-      Number(senderUsdcBalance) / 1000000
-    } USDC and ETH balance: ${ethBalance}`;
+    return `Smart account USDC balance: ${Number(senderUsdcBalance) / 1000000
+      } USDC and ETH balance: ${ethBalance}`;
   }
 
   async getChainId(): Promise<string | Error> {
