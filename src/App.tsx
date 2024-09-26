@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from "@web3auth/base";
 import { Web3Auth, Web3AuthOptions } from "@web3auth/modal";
-import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
+import { AuthAdapter } from "@web3auth/auth-adapter";
 
 import "./App.css";
 // import RPC from "./web3RPC";  // for using web3.js
@@ -15,7 +15,6 @@ import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { WalletServicesPlugin } from "@web3auth/wallet-services-plugin";
 
 // Adapters
-import { getDefaultExternalAdapters } from "@web3auth/default-evm-adapter";
 // import { WalletConnectV2Adapter, getWalletConnectV2Settings } from "@web3auth/wallet-connect-v2-adapter";
 // import { MetamaskAdapter } from "@web3auth/metamask-adapter";
 // import { TorusWalletAdapter, TorusWalletOptions } from "@web3auth/torus-evm-adapter";
@@ -68,7 +67,7 @@ function App() {
       try {
         const web3auth = new Web3Auth(web3AuthOptions as Web3AuthOptions);
 
-        const openloginAdapter = new OpenloginAdapter({
+        const openloginAdapter = new AuthAdapter({
           loginSettings: {
             mfaLevel: "optional",
           },
@@ -115,12 +114,12 @@ function App() {
         // read more about adapters here: https://web3auth.io/docs/sdk/pnp/web/adapters/
 
         // Only when you want to add External default adapters, which includes WalletConnect, Metamask, Torus EVM Wallet
-        const adapters = await getDefaultExternalAdapters({
-          options: web3AuthOptions,
-        });
-        adapters.forEach((adapter) => {
-          web3auth.configureAdapter(adapter);
-        });
+        // const adapters = await getDefaultExternalAdapters({
+        //   options: web3AuthOptions,
+        // });
+        // adapters.forEach((adapter) => {
+        //   web3auth.configureAdapter(adapter);
+        // });
 
         // adding wallet connect v2 adapter
         // const defaultWcSettings = await getWalletConnectV2Settings("eip155", ["1"], "04309ed1007e77d1f119b85205bb779d");
