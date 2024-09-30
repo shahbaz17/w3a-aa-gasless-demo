@@ -27,15 +27,15 @@ const clientId =
 
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
-  chainId: "0x14a34",
-  rpcTarget: "https://sepolia.base.org",
+  chainId: "0x66eee", // Hex of 421614
   // Avoid using public rpcTarget in production.
   // Use services like Infura, Quicknode etc
-  displayName: "Base Sepolia",
-  blockExplorerUrl: "https://sepolia.basescan.org/",
-  ticker: "ETH",
-  tickerName: "Ethereum",
-  logo: "https://images.toruswallet.io/base.svg",
+  rpcTarget: "https://rpc.ankr.com/arbitrum_sepolia",
+  displayName: "Arbitrum Sepolia Testnet",
+  blockExplorerUrl: "https://sepolia.arbiscan.io/",
+  ticker: "AETH",
+  tickerName: "AETH",
+  logo: "https://cryptologos.cc/logos/arbitrum-arb-logo.png",
 };
 
 const privateKeyProvider = new EthereumPrivateKeyProvider({

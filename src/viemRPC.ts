@@ -8,25 +8,31 @@ import {
   parseAbiItem,
   encodeFunctionData,
   parseUnits,
+  getAddress,
+  parseAbi,
+  maxUint256,
 } from "viem";
 
 import { createPimlicoClient } from "permissionless/clients/pimlico";
-import { toBiconomySmartAccount } from "permissionless/accounts";
-import { baseSepolia, mainnet, polygonMumbai, sepolia } from "viem/chains";
+import { toBiconomySmartAccount, toEcdsaKernelSmartAccount, toSafeSmartAccount } from "permissionless/accounts";
+import { arbitrumSepolia, baseSepolia, mainnet, polygonMumbai, sepolia } from "viem/chains";
 import {
+  SmartAccountClient,
   createSmartAccountClient,
 } from "permissionless";
 import type { EIP1193Provider } from "viem";
 import type { IProvider } from "@web3auth/base";
 import { entryPoint06Address, entryPoint07Address } from "viem/account-abstraction";
+import { chainConfig } from "viem/zksync";
+import { encodeNonce } from "permissionless/utils";
 
 // const ERC20_PAYMASTER_ADDRESS = "0x000000000041F3aFe8892B48D88b6862efe0ec8d";
 // const SPONSORSHIP_POLICY_ID = "sp_square_the_stranger";
-const USDC_ADDRESS = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+const USDC_ADDRESS = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d";
 const ERC20_PAYMASTER_ADDRESS = "0x00000000002E3A39aFEf1132214fEee5a55ce127";
 const API_KEY = "bff8c9e7-b1ad-4489-ab73-a61e30343138";
 // const PAYMASTER_URL = `https://api.pimlico.io/v2/84532/rpc?apikey=${API_KEY}`;
-const BUNDLER_URL = `https://api.pimlico.io/v2/84532/rpc?apikey=${API_KEY}`;
+const BUNDLER_URL = `https://api.pimlico.io/v2/421614/rpc?apikey=pim_WDBELWbZeo9guUAr7HNFaF`;
 
 const USDC_ABI = [
   {
@@ -205,41 +211,58 @@ export default class EthereumRpc {
       case "0xaa36a7":
         return sepolia;
       default:
-        return mainnet;
+        return arbitrumSepolia;
     }
   }
 
   async prepareSmartAccountClient(): Promise<any> {
     const publicClient = createPublicClient({
-      transport: http("https://sepolia.base.org"),
-      chain: baseSepolia,
+      transport: http("https://rpc.ankr.com/arbitrum_sepolia"),
+      chain: arbitrumSepolia,
     });
 
     const smartAccountSigner = this.provider as EIP1193Provider
 
-    const smartAccount = await toBiconomySmartAccount({
+    const smartAccount = await toSafeSmartAccount({
       client: publicClient,
       owners: [smartAccountSigner],
-      entryPoint: {
-        address: entryPoint06Address,
-        version: "0.6",
-      }
+      version: "1.4.1"
     });
 
     const bundlerClient = createPimlicoClient({
       transport: http(BUNDLER_URL),
-      entryPoint: {
-        address: entryPoint06Address,
-        version: "0.6",
-      },
+      chain: arbitrumSepolia,
+      // entryPoint: {
+      //   address: entryPoint06Address,
+      //   version: '0.6',
+      // }
+    });
+
+    const paymasterClient = createPimlicoClient({
+      transport: http("https://api-paymaster.web3auth.dev/", {
+        fetchOptions: {
+          headers: {
+            Authorization: "Basic "
+          }
+        },
+      }),
+      chain: arbitrumSepolia,
+      // entryPoint: {
+      //   address: entryPoint06Address,
+      //   version: '0.6',
+      // }
     });
 
     // bundlerClient.extends(pimlicoPaymasterActions(entryPoint06Address));
 
     const smartAccountClient = createSmartAccountClient({
       account: smartAccount,
-      chain: baseSepolia,
       bundlerTransport: http(BUNDLER_URL),
+      paymaster: bundlerClient,
+      chain: arbitrumSepolia,
+      userOperation: {
+        estimateFeesPerGas: async () => (await bundlerClient.getUserOperationGasPrice()).fast,
+      }
     });
 
     return { smartAccount, smartAccountClient };
@@ -251,26 +274,46 @@ export default class EthereumRpc {
       throw new Error("Smart account client not initialized");
     }
 
-    // Send 1 USDC
-    const txHash = await smartAccountClient.sendTransaction({
-      to: USDC_ADDRESS,
-      data: encodeFunctionData({
-        abi: USDC_ABI,
-        functionName: "transfer",
-        args: [address, parseUnits("1", 6)],
-      }),
-    });
+    const parallelNonce1 = encodeNonce({
+      key: BigInt(Date.now()),
+      sequence: 0n,
+    })
 
-    // const txHash = await smartAccountClient.sendTransaction({
-    //   to: "0xeaA8Af602b2eDE45922818AE5f9f7FdE50cFa1A8",
-    //   value: parseEther("0.08"),
-    //   data: "0x1234",
-    // });
+    try {
+      // Send 1 USDC
+      const txHash = await (smartAccountClient as SmartAccountClient).sendTransaction({
+        calls: [
+          {
+            to: USDC_ADDRESS,
+            abi: parseAbi(["function approve(address,uint)"]),
+            functionName: "approve",
+            args: ["0x0000000000000039cd5e8aE05257CE51C473ddd1", maxUint256],
+          },
+          {
+            to: "0xeaA8Af602b2eDE45922818AE5f9f7FdE50cFa1A8",
+            value: 0n,
+            data: '0x',
+          }
+        ],
+        paymasterContext: {
+          token: USDC_ADDRESS
+        },
+        // nonce: parallelNonce1,
+      });
 
-    console.log(
-      `User operation included: https://sepolia.basescan.org/tx/${txHash}`
-    );
-    return `User operation included: https://sepolia.basescan.org/tx/${txHash}`;
+      // const txHash = await smartAccountClient.sendTransaction({
+      //   to: "0xeaA8Af602b2eDE45922818AE5f9f7FdE50cFa1A8",
+      //   value: parseEther("0.08"),
+      //   data: "0x1234",
+      // });
+
+      console.log(
+        `User operation included: https://sepolia.basescan.org/tx/${txHash}`
+      );
+      return `User operation included: https://sepolia.basescan.org/tx/${txHash}`;
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async getSmartAccountAddress() {
@@ -280,8 +323,8 @@ export default class EthereumRpc {
 
   async getSmartAccountBalance() {
     const publicClient = createPublicClient({
-      transport: http("https://sepolia.base.org"),
-      chain: baseSepolia,
+      transport: http("https://rpc.ankr.com/arbitrum_sepolia"),
+      chain: arbitrumSepolia,
     });
     const { smartAccount } = await this.prepareSmartAccountClient();
 
@@ -357,6 +400,7 @@ export default class EthereumRpc {
       const publicClient = createPublicClient({
         chain: this.getViewChain(),
         transport: custom(this.provider),
+
       });
       const addresses = await this.getAccounts();
       if (Array.isArray(addresses)) {
@@ -377,10 +421,12 @@ export default class EthereumRpc {
       const publicClient = createPublicClient({
         chain: this.getViewChain(),
         transport: custom(this.provider),
+
       });
       const walletClient = createWalletClient({
         chain: this.getViewChain(),
         transport: custom(this.provider),
+
       });
 
       const destination = "0x40e1c367Eca34250cAF1bc8330E9EddfD403fC56";
